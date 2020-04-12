@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: retrograde:0.10">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/retrograde/retrograde/0.10/retrograde-0.10.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

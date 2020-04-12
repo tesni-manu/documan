@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: dali:0.7.4">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/dali/dali/0.7.4/dali-0.7.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
