@@ -3,6 +3,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]]
-  :main ^:skip-aot documan.core
+  :main documan.core
+  :aot [documan.core]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
