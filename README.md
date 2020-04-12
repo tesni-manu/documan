@@ -1,20 +1,20 @@
 # documan
 
-FIXME: description
+Tool to generate documents and diagrams.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+FIXME:
 
 ## Usage
 
-FIXME: explanation
+FIXME:
 
     $ java -jar documan-0.1.0-standalone.jar [args]
 
 ## Options
 
-FIXME: listing of options this app accepts.
+FIXME: 
 
 ## Examples
 
@@ -30,7 +30,7 @@ FIXME: listing of options this app accepts.
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Manoj Kumar A
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
