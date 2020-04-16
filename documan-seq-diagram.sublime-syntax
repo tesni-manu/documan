@@ -1,0 +1,37 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions:
+  - seq.documan
+scope: source.documan-seq-diagram
+contexts:
+  main:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character
+    - match: '\"'
+      scope: punctuation.definition.string.begin.documan-seq-diagram
+      push: item-name
+
+    # Comments begin with a '//' and finish at the end of the line
+    - match: '//'
+      scope: punctuation.definition.comment.documan-seq-diagram
+      push: line_comment
+
+    - match: '((Sequence-Diagram)|return|(=>)|{|}|\(|\)|\||=)'
+      scope: keyword.control.documan-seq-diagram
+
+    - match: '(actor|gui|server)'
+      scope: constant.numeric.documan-seq-diagram
+
+  item-name:
+    - meta_scope: string.quoted.double.documan-seq-diagram
+    - match: '\\.'
+      scope: constant.character.escape.documan-seq-diagram
+    - match: '\"'
+      scope: punctuation.definition.string.end.documan-seq-diagram
+      pop: true
+
+  line_comment:
+    - meta_scope: comment.line.documan-seq-diagram
+    - match: $
+      pop: true
