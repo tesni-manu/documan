@@ -17,10 +17,10 @@ contexts:
       scope: punctuation.definition.comment.documan-seq-diagram
       push: line_comment
 
-    - match: '((Sequence-Diagram)|return|(=>)|{|}|\(|\)|\||=)'
+    - match: '((Sequence-Diagram)|return|(=>)|(\->)|(>>)|{|}|\(|\)|\||=)'
       scope: keyword.control.documan-seq-diagram
 
-    - match: '(actor|gui|server)'
+    - match: '(actor|gui|server|external)'
       scope: constant.numeric.documan-seq-diagram
 
   item-name:
