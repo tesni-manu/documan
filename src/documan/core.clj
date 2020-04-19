@@ -15,8 +15,8 @@
 
 ;-------------------------------------------------------------------------------
 
-(defn transpile-document
-  "Transpile the given file and save it as edn in the specified path."
+(defn src->edn
+  "Transpile the given source file and save it as edn in the specified path."
   [path filename document-data]
   (let [lines (str/split-lines document-data)
         tokens (utils/parse-tokens (first lines))
@@ -35,40 +35,40 @@
         other-lines (strip-comments (rest lines))]
     (case type
       ; TODO: add more types here
-      :sequence-diagram (seq/transpile-diagram (str path "/sequence-diagrams/")
-                                               filename
-                                               version
-                                               title
-                                               other-lines))))
+      :sequence-diagram (seq/src->edn (str path "/sequence-diagrams/")
+                                      filename
+                                      version
+                                      title
+                                      other-lines))))
 
-(defn transpile-all-documents [project-path]
+(defn all-src->edn [project-path]
   "Transpile edn files for all source code files in the project."
   (println "Transpiling all in:" (str project-path "/src/"))
   (doseq [file (get-files-only-given-extension
                  (str project-path "/src/") ".documan")]
-    (transpile-document
+    (src->edn
       (str project-path "/edn/")
       (str/replace (.getName file) ".documan" "")
       (slurp (.getAbsolutePath file)))))
 
 ;-------------------------------------------------------------------------------
 
-(defn generate-document
+(defn edn->document
   "Generate document and save it in the specified path and filename."
   [path filename document-data]
   (let [type (:type document-data)]
     (case type
       ; TODO: add more types here
-      :sequence-diagram (seq/generate-diagram
+      :sequence-diagram (seq/edn->document
                           (str path "/sequence-diagrams/")
                           filename document-data))))
 
-(defn generate-all-documents [project-path]
+(defn all-edn->document [project-path]
   "Generates documents for all edn files in the project."
   (println "Generating all in:" (str project-path "/edn/"))
   (doseq [file (get-files-only-given-extension
                  (str project-path "/edn/") ".edn")]
-    (generate-document
+    (edn->document
       (str project-path "/dst/")
       (str/replace (.getName file) ".edn" "")
       (read-string (slurp (.getAbsolutePath file))))))
@@ -88,8 +88,8 @@
       (println "Please specify the project path as first argument.")
       (do
         (if (flag-contains? flags "-t")
-          (transpile-all-documents project-path))
+          (all-src->edn project-path))
         (if (flag-contains? flags "-g")
-          (generate-all-documents project-path))))))
+          (all-edn->document project-path))))))
 
 ;-------------------------------------------------------------------------------
