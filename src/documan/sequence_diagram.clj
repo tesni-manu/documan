@@ -317,8 +317,7 @@
   (let [theme {:actor    {:fill "#ffcccc" :text :black}
                :gui      {:fill "#ccffe5" :text :black}
                :server   {:fill "#cce5ff" :text :black}
-               :external {:fill "#475c4e" :text :white}
-               }
+               :external {:fill "#475c4e" :text :white}}
 
         objects (:objects diagram)
         obj-meta (atom {})
@@ -385,10 +384,11 @@
                           y (:y payload)
                           steps (:steps flow)
                           flow-obj-id (:from flow)
+                          this-meta (flow-obj-id meta)
                           dali-el (:dali-el payload)
                           flow-id (:id flow)
                           flow-title-el (draw-label :id (:id flow)
-                                                    :x (- (:x (flow-obj-id meta))
+                                                    :x (- (:x this-meta)
                                                           object-width
                                                           flow-item-offset)
                                                     :y y
@@ -397,16 +397,60 @@
                                                     :text (:name flow))
                           flow-lines (map-indexed
                                        (fn [idx step]
-                                         (let [step-type (:type step)]
+                                         (let [step-type (:type step)
+                                               from (:from step)
+                                               to (:to step)]
                                            (cond
-                                             (= :call step-type)
+                                             (and (= :call step-type)
+                                                  (= from to))
                                              (let [x1 (+ flow-item-offset
-                                                         (:x ((:from step) meta)))
+                                                         (:x (from meta)))
                                                    y1 (+ y gap
                                                          (* idx flow-item-height))
-                                                   x2 (- (:x ((:to step) meta))
+                                                   x2 (+ x1 (* 2.5 gap))
+                                                   y2 y1
+                                                   x3 x2
+                                                   y3 (+ y2 (ceil (/ flow-item-height 4)))
+                                                   x4 x1
+                                                   y4 y3
+                                                   x0 (+ x1 object-width)
+                                                   y0 (- y1 40)]
+                                               (group
+                                                 (draw-line :x1 x1, :y1 y1
+                                                            :x2 x2, :y2 y2
+                                                            :stroke {:paint :darkgrey
+                                                                     :width 2})
+                                                 (draw-line :x1 x2, :y1 y2
+                                                            :x2 x3, :y2 y3
+                                                            :stroke {:paint :darkgrey
+                                                                     :width 2})
+                                                 (draw-connector :id flow-id
+                                                                 :x1 x3
+                                                                 :y1 y3
+                                                                 :x2 x4
+                                                                 :y2 y4
+                                                                 :text (:description step))))
+
+                                             (= :call step-type)
+                                             (let [x1 (+ flow-item-offset
+                                                         (:x (from meta)))
+                                                   y1 (+ y gap
+                                                         (* idx flow-item-height))
+                                                   x2 (- (:x (to meta))
                                                          flow-item-offset)
                                                    y2 y1]
+                                               (if (= from
+                                                      (:id (first objects)))
+                                                 (swap! obj-meta assoc
+                                                        from
+                                                        (assoc
+                                                          (from @obj-meta)
+                                                          :y1 (- y1 flow-item-height))))
+                                               (swap! obj-meta assoc
+                                                      to
+                                                      (assoc
+                                                        (to @obj-meta)
+                                                        :y1 y1))
                                                (draw-connector :id flow-id
                                                                :x1 x1
                                                                :y1 y1
@@ -415,14 +459,25 @@
                                                                :text (:description step)))
 
                                              (= :return step-type)
-                                             (let [x1 (- (:x ((:from step) meta))
+                                             (let [x1 (- (:x (from meta))
                                                          flow-item-offset)
                                                    y1 (+ y gap
                                                          (* idx flow-item-height))
-                                                   x2 (+ (:x ((:to step) meta))
+                                                   x2 (+ (:x (to meta))
                                                          flow-item-offset)
                                                    y2 y1
                                                    desc (:description step)]
+                                               (swap! obj-meta assoc
+                                                      from
+                                                      (assoc
+                                                        (from @obj-meta)
+                                                        :y2 y1))
+                                               (if (= to (:id (first objects)))
+                                                 (swap! obj-meta assoc
+                                                        to
+                                                        (assoc
+                                                          (to @obj-meta)
+                                                          :y2 (+ y1 flow-item-height))))
                                                (draw-connector :id flow-id
                                                                :x1 x1
                                                                :y1 y1
@@ -432,14 +487,30 @@
                                                                        "return" desc)))
 
                                              ; TODO: Self & message
-                                             ; TODO: Vertical bars
-
-                                             :else nil))) steps)]
+                                             :else nil))) steps)
+                          flow-bars (filter some?
+                                            (map (fn [obj]
+                                                   (let [bars-meta @obj-meta
+                                                         meta-data ((:id obj) bars-meta)
+                                                         x (:x meta-data)
+                                                         x1 (- x flow-item-offset)
+                                                         x2 (+ x flow-item-offset)
+                                                         y1 (:y1 meta-data)
+                                                         y2 (:y2 meta-data)]
+                                                     (draw-rectangle :id (str "bar-" (:id obj))
+                                                                     :fill "#733D1F"
+                                                                     :stroke :none
+                                                                     :x x1
+                                                                     :y y1
+                                                                     :w (- x2 x1)
+                                                                     :h (- y2 y1))))
+                                                 objects))]
 
                       (assoc payload
                         :dali-el
                         (vec (concat (conj dali-el flow-title-el)
-                                     (filter some? flow-lines))))))]
+                                     (filter some? flow-lines)
+                                     flow-bars)))))]
 
     [:dali/page {:width page-width :height page-height}
      [:defs
