@@ -249,7 +249,7 @@
 (defn draw-text-stack [& {:as args}]
   (let [{:keys [texts color font size gap x y]}
         (merge {:texts [""]
-                :font  "Sans Serif"
+                :font  "sans-serif"
                 :color {:text :black :fill :white}
                 :size  12
                 :gap   4} args)]
@@ -297,17 +297,25 @@
 ;-------------------------------------------------------------------------------
 
 (defn draw-connector [& {:as args}]
-  (let [{:keys [x1 y1 x2 y2 id text]} args]
+  (let [{:keys [arrow x1 y1 x2 y2 text line-color w]}
+        (merge {:arrow :triangle :line-color "#bbbbbb" :w 2} args)]
     [:dali/stack {:gap -4}
      [:polyline
       {:dali/marker-end
-       {:id :sharp :fill :black}}
+       {:id arrow :fill line-color}}
       [x1 y1] [x2 y2]]
-     (apply draw-label (conj (map->vec args)
-                             :w (max 0 (- x2 x1 20))
-                             :h 30
-                             :size 10
-                             :text text))]))
+     [:dali/stack {:gap 0}
+      (apply draw-line (conj (map->vec args)
+                             :w w
+                             :stroke line-color))
+      (apply draw-label (conj (map->vec args)
+                              :w (max 0 (- x2 x1 20))
+                              :h 30
+                              :size 9
+                              :text text))]]))
+
+(def draw-call (partial draw-connector :line-color :black))
+(def draw-return (partial draw-connector :arrow :very-sharp :line-color "#999"))
 
 ;-------------------------------------------------------------------------------
 
@@ -346,7 +354,6 @@
         diagram-top (ceil (/ (- page-height diagram-height) 2))
         content-left (+ diagram-left padding)
         content-top (+ diagram-top padding)
-        content-right (- (+ diagram-left diagram-width) padding)
         content-bottom (- (+ diagram-top diagram-height) padding)
         draw-obj (fn [idx obj]
                    (let [obj-id (:id obj)
@@ -357,7 +364,7 @@
                          y1 (+ y object-title-height)
                          y2 content-bottom
                          current-theme ((first (:tags obj)) theme)]
-                     (swap! obj-meta assoc obj-id {:x x1})
+                     (swap! obj-meta assoc obj-id {:x x1 :y []})
                      (group
                        ; Object title text-box
                        (draw-text-box :id obj-id
@@ -370,7 +377,8 @@
                                       :w object-width
                                       :h object-title-height
                                       :text (:name obj)
-                                      :color (:text current-theme))
+                                      :color (:text current-theme)
+                                      :size 11)
                        ; Object's vertical line
                        (draw-line :stroke :darkgrey
                                   :w 1
@@ -380,7 +388,6 @@
                                   :y2 y2))))
         draw-flow (fn [payload flow]
                     (let [meta @obj-meta
-                          flow-idx (:idx payload)
                           y (:y payload)
                           steps (:steps flow)
                           flow-obj-id (:from flow)
@@ -406,11 +413,12 @@
                                              (let [x1 (+ flow-item-offset
                                                          (:x (from meta)))
                                                    y1 (+ y gap
-                                                         (* idx flow-item-height))
+                                                         (* idx flow-item-height)
+                                                         -15)
                                                    x2 (+ x1 (* 2.5 gap))
                                                    y2 y1
                                                    x3 x2
-                                                   y3 (+ y2 (ceil (/ flow-item-height 4)))
+                                                   y3 (+ y2 15 (ceil (/ flow-item-height 4)))
                                                    x4 x1
                                                    y4 y3
                                                    x0 (+ x1 object-width)
@@ -418,18 +426,18 @@
                                                (group
                                                  (draw-line :x1 x1, :y1 y1
                                                             :x2 x2, :y2 y2
-                                                            :stroke {:paint :darkgrey
-                                                                     :width 2})
+                                                            :stroke {:paint :black
+                                                                     :width 1})
                                                  (draw-line :x1 x2, :y1 y2
                                                             :x2 x3, :y2 y3
-                                                            :stroke {:paint :darkgrey
-                                                                     :width 2})
-                                                 (draw-connector :id flow-id
-                                                                 :x1 x3
-                                                                 :y1 y3
-                                                                 :x2 x4
-                                                                 :y2 y4
-                                                                 :text (:description step))))
+                                                            :stroke {:paint :black
+                                                                     :width 1})
+                                                 (draw-call :id flow-id
+                                                            :x1 x3
+                                                            :y1 y3
+                                                            :x2 x4
+                                                            :y2 y4
+                                                            :text (:description step))))
 
                                              (= :call step-type)
                                              (let [x1 (+ flow-item-offset
@@ -445,18 +453,21 @@
                                                         from
                                                         (assoc
                                                           (from @obj-meta)
-                                                          :y1 (- y1 flow-item-height))))
+                                                          :y
+                                                          (conj (:y (from @obj-meta))
+                                                                (- y1 flow-item-height)))))
                                                (swap! obj-meta assoc
                                                       to
                                                       (assoc
                                                         (to @obj-meta)
-                                                        :y1 y1))
-                                               (draw-connector :id flow-id
-                                                               :x1 x1
-                                                               :y1 y1
-                                                               :x2 x2
-                                                               :y2 y2
-                                                               :text (:description step)))
+                                                        :y
+                                                        (conj (:y (to @obj-meta)) y1)))
+                                               (draw-call :id flow-id
+                                                          :x1 x1
+                                                          :y1 y1
+                                                          :x2 x2
+                                                          :y2 y2
+                                                          :text (:description step)))
 
                                              (= :return step-type)
                                              (let [x1 (- (:x (from meta))
@@ -471,40 +482,45 @@
                                                       from
                                                       (assoc
                                                         (from @obj-meta)
-                                                        :y2 y1))
+                                                        :y
+                                                        (conj (:y (from @obj-meta)) y1)))
                                                (if (= to (:id (first objects)))
                                                  (swap! obj-meta assoc
                                                         to
                                                         (assoc
                                                           (to @obj-meta)
-                                                          :y2 (+ y1 flow-item-height))))
-                                               (draw-connector :id flow-id
-                                                               :x1 x1
-                                                               :y1 y1
-                                                               :x2 x2
-                                                               :y2 y2
-                                                               :text (if (nil? desc)
-                                                                       "return" desc)))
+                                                          :y
+                                                          (conj (:y (to @obj-meta))
+                                                                (+ y1 flow-item-height)))))
+                                               (draw-return :id flow-id
+                                                            :x1 x1
+                                                            :y1 y1
+                                                            :x2 x2
+                                                            :y2 y2
+                                                            :text (if (nil? desc)
+                                                                    "return" desc)))
 
                                              ; TODO: Self & message
                                              :else nil))) steps)
-                          flow-bars (filter some?
-                                            (map (fn [obj]
-                                                   (let [bars-meta @obj-meta
-                                                         meta-data ((:id obj) bars-meta)
-                                                         x (:x meta-data)
-                                                         x1 (- x flow-item-offset)
-                                                         x2 (+ x flow-item-offset)
-                                                         y1 (:y1 meta-data)
-                                                         y2 (:y2 meta-data)]
-                                                     (draw-rectangle :id (str "bar-" (:id obj))
-                                                                     :fill "#733D1F"
-                                                                     :stroke :none
-                                                                     :x x1
-                                                                     :y y1
-                                                                     :w (- x2 x1)
-                                                                     :h (- y2 y1))))
-                                                 objects))]
+                          flow-bars (map (fn [obj]
+                                           (let [bars-meta @obj-meta
+                                                 meta-data ((:id obj) bars-meta)
+                                                 x (:x meta-data)
+                                                 y (mapv vec (partition 2 (:y meta-data)))]
+                                             (apply group (mapv (fn [bar]
+                                                                  (let [x1 (- x flow-item-offset)
+                                                                        x2 (+ x flow-item-offset)
+                                                                        y1 (first bar)
+                                                                        y2 (second bar)]
+                                                                    (draw-rectangle :id (str "bar-" (:id obj))
+                                                                                    :fill "#733D1F"
+                                                                                    :stroke :none
+                                                                                    :x x1
+                                                                                    :y y1
+                                                                                    :w (- x2 x1)
+                                                                                    :h (- y2 y1))))
+                                                                y))))
+                                         objects)]
 
                       (assoc payload
                         :dali-el
@@ -514,9 +530,10 @@
 
     [:dali/page {:width page-width :height page-height}
      [:defs
-      (d/css (str "polyline {stroke: black; stroke-width: 1;}"))
       (prefab/drop-shadow-effect :ds {:opacity 0.2 :offset [3 3] :radius 3})
-      (prefab/sharp-arrow-marker :sharp {:scale 1})]
+      (prefab/sharp-arrow-marker :sharp {:scale 1})
+      (prefab/triangle-arrow-marker :triangle {:scale 1})
+      (prefab/sharp-arrow-marker :very-sharp {:width 8 :height 18})]
      ; title
      (draw-label :id :title
                  :text (:title diagram)
