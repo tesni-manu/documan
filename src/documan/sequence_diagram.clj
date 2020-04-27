@@ -308,24 +308,26 @@
       (apply draw-line (conj (map->vec args)
                              :w w
                              :stroke line-color))
-      (apply draw-label (conj (map->vec args)
-                              :w (max 0 (- x2 x1 20))
-                              :h 30
-                              :size 9
-                              :text text))]]))
+      (if (not (empty? text))
+        (apply draw-label (conj (map->vec args)
+                                :w (max 0 (- x2 x1 20))
+                                :h 30
+                                :size 9
+                                :text text)))]]))
 
 (def draw-call (partial draw-connector :line-color :black))
-(def draw-return (partial draw-connector :arrow :very-sharp :line-color "#999"))
+(def draw-return (partial draw-connector :arrow :sharp :line-color "#999"))
+(def draw-message (partial draw-connector :line-color :black :arrow :very-sharp))
 
 ;-------------------------------------------------------------------------------
 
 (defn create-sequence-diagram
   "Creates dali document for the given sequence diagram."
   [diagram]
-  (let [theme {:actor    {:fill "#ffcccc" :text :black}
-               :gui      {:fill "#ccffe5" :text :black}
-               :server   {:fill "#cce5ff" :text :black}
-               :external {:fill "#475c4e" :text :white}}
+  (let [theme {:actor    {:fill "#fdab9f" :text :black :bar "#8b0000"}
+               :gui      {:fill "#bcffdb" :text :black :bar "#4f7942"}
+               :server   {:fill "#d8f9ff" :text :black :bar "#187bcd"}
+               :external {:fill "#57595d" :text :white :bar "#232323"}}
 
         objects (:objects diagram)
         obj-meta (atom {})
@@ -344,6 +346,7 @@
         content-height (+ object-title-height
                           gap
                           (* flow-item-height (inc flow-step-count))
+                          (* (+ gap flow-item-height) (dec (count flows)))
                           gap)
         margin 40
         diagram-width (+ padding content-width padding)
@@ -378,7 +381,7 @@
                                       :h object-title-height
                                       :text (:name obj)
                                       :color (:text current-theme)
-                                      :size 11)
+                                      :size 12)
                        ; Object's vertical line
                        (draw-line :stroke :darkgrey
                                   :w 1
@@ -420,9 +423,7 @@
                                                    x3 x2
                                                    y3 (+ y2 15 (ceil (/ flow-item-height 4)))
                                                    x4 x1
-                                                   y4 y3
-                                                   x0 (+ x1 object-width)
-                                                   y0 (- y1 40)]
+                                                   y4 y3]
                                                (group
                                                  (draw-line :x1 x1, :y1 y1
                                                             :x2 x2, :y2 y2
@@ -498,9 +499,39 @@
                                                             :x2 x2
                                                             :y2 y2
                                                             :text (if (nil? desc)
-                                                                    "return" desc)))
+                                                                    "" desc)))
 
-                                             ; TODO: Self & message
+                                             (= :message step-type)
+                                             (let [x1 (+ flow-item-offset
+                                                         (:x (from meta)))
+                                                   y1 (+ y gap
+                                                         (* idx flow-item-height))
+                                                   x2 (- (:x (to meta))
+                                                         flow-item-offset)
+                                                   y2 y1]
+                                               (if (= from
+                                                      (:id (first objects)))
+                                                 (swap! obj-meta assoc
+                                                        from
+                                                        (assoc
+                                                          (from @obj-meta)
+                                                          :y
+                                                          (conj (:y (from @obj-meta))
+                                                                (- y1 flow-item-height)))))
+                                               (swap! obj-meta assoc
+                                                      to
+                                                      (assoc
+                                                        (to @obj-meta)
+                                                        :y
+                                                        (conj (:y (to @obj-meta))
+                                                              (- y1 (ceil (/ flow-item-height 4)))
+                                                              (+ y1 (ceil (/ flow-item-height 4))))))
+                                               (draw-message :id flow-id
+                                                             :x1 x1
+                                                             :y1 y1
+                                                             :x2 x2
+                                                             :y2 y2
+                                                             :text (:description step)))
                                              :else nil))) steps)
                           flow-bars (map (fn [obj]
                                            (let [bars-meta @obj-meta
@@ -513,7 +544,7 @@
                                                                         y1 (first bar)
                                                                         y2 (second bar)]
                                                                     (draw-rectangle :id (str "bar-" (:id obj))
-                                                                                    :fill "#733D1F"
+                                                                                    :fill (:bar ((first (:tags obj)) theme))
                                                                                     :stroke :none
                                                                                     :x x1
                                                                                     :y y1
@@ -523,6 +554,8 @@
                                          objects)]
 
                       (assoc payload
+                        :y
+                        (+ y gap (* (inc (count steps)) flow-item-height))
                         :dali-el
                         (vec (concat (conj dali-el flow-title-el)
                                      (filter some? flow-lines)
@@ -530,7 +563,7 @@
 
     [:dali/page {:width page-width :height page-height}
      [:defs
-      (prefab/drop-shadow-effect :ds {:opacity 0.2 :offset [3 3] :radius 3})
+      (prefab/drop-shadow-effect :ds {:opacity 0.3 :offset [3 3] :radius 3})
       (prefab/sharp-arrow-marker :sharp {:scale 1})
       (prefab/triangle-arrow-marker :triangle {:scale 1})
       (prefab/sharp-arrow-marker :very-sharp {:width 8 :height 18})]
@@ -546,7 +579,7 @@
      ; bounding rectangle
      (draw-rectangle :id :bounding-rectangle
                      :stroke :none
-                     :fill "#efefff"
+                     :fill "#efefef"
                      :x diagram-left
                      :y diagram-top
                      :w diagram-width
