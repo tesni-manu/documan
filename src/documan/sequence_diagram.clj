@@ -424,6 +424,23 @@
                                                    y3 (+ y2 15 (ceil (/ flow-item-height 4)))
                                                    x4 x1
                                                    y4 y3]
+                                               (if (= from
+                                                      (:from (first steps)))
+                                                 (swap! obj-meta assoc
+                                                        from
+                                                        (assoc
+                                                          (from @obj-meta)
+                                                          :y
+                                                          (conj (:y (from @obj-meta))
+                                                                (- y1 flow-item-height)))))
+                                               (if (= idx (dec (count steps)))
+                                                 (swap! obj-meta assoc
+                                                        to
+                                                        (assoc
+                                                          (to @obj-meta)
+                                                          :y
+                                                          (conj (:y (to @obj-meta))
+                                                                (+ y1 flow-item-height 15)))))
                                                (group
                                                  (draw-line :x1 x1, :y1 y1
                                                             :x2 x2, :y2 y2
@@ -449,7 +466,7 @@
                                                          flow-item-offset)
                                                    y2 y1]
                                                (if (= from
-                                                      (:id (first objects)))
+                                                      (:from (first steps)))
                                                  (swap! obj-meta assoc
                                                         from
                                                         (assoc
@@ -485,7 +502,7 @@
                                                         (from @obj-meta)
                                                         :y
                                                         (conj (:y (from @obj-meta)) y1)))
-                                               (if (= to (:id (first objects)))
+                                               (if (= to (:from (first steps)))
                                                  (swap! obj-meta assoc
                                                         to
                                                         (assoc
@@ -510,7 +527,7 @@
                                                          flow-item-offset)
                                                    y2 y1]
                                                (if (= from
-                                                      (:id (first objects)))
+                                                      (:from (first steps)))
                                                  (swap! obj-meta assoc
                                                         from
                                                         (assoc
@@ -518,6 +535,14 @@
                                                           :y
                                                           (conj (:y (from @obj-meta))
                                                                 (- y1 flow-item-height)))))
+                                               (if (= idx (dec (count steps)))
+                                                 (swap! obj-meta assoc
+                                                        from
+                                                        (assoc
+                                                          (from @obj-meta)
+                                                          :y
+                                                          (conj (:y (from @obj-meta))
+                                                                (+ y1 flow-item-height)))))
                                                (swap! obj-meta assoc
                                                       to
                                                       (assoc
