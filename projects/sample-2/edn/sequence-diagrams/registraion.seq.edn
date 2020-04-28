@@ -1,0 +1,142 @@
+{:type :sequence-diagram,
+ :version "V1",
+ :title "On-boarding New User",
+ :objects
+ [{:id :user, :name "New User", :tags [:actor]}
+  {:id :ui, :name "User Interface", :tags [:gui]}
+  {:id :api, :name "API Server", :tags [:server]}
+  {:id :cron, :name "Cron Job", :tags [:server]}
+  {:id :db, :name "Database", :tags [:server]}
+  {:id :log, :name "Log Server", :tags [:server]}
+  {:id :email, :name "Email Server", :tags [:external]}],
+ :flows
+ [{:id :register,
+   :name "Register",
+   :from :user,
+   :steps
+   [{:from :user,
+     :to :ui,
+     :type :call,
+     :description "Enter details like \\n email, mobile etc.",
+     :id :user-ui|register}
+    {:from :ui,
+     :to :api,
+     :type :call,
+     :description "POST /api/user",
+     :id :ui-api|register}
+    {:from :api,
+     :to :log,
+     :type :message,
+     :description "Registration",
+     :id :api-log|register}
+    {:from :api,
+     :to :db,
+     :type :call,
+     :description "Create user record",
+     :id :api-db|register}
+    {:from :db, :to :api, :type :return, :id :db-api|register}
+    {:from :api,
+     :to :db,
+     :type :call,
+     :description "Generate & store OTP",
+     :id :api-db|register}
+    {:from :db, :to :api, :type :return, :id :db-api|register}
+    {:from :api,
+     :to :email,
+     :type :message,
+     :description "Send OTP to user",
+     :id :api-email|register}
+    {:from :api, :to :ui, :type :return, :id :api-ui|register}
+    {:from :ui,
+     :to :user,
+     :type :return,
+     :description "Show message asking \\n user to validate",
+     :id :ui-user|register}
+    {:from :user,
+     :to :validate,
+     :type :flow,
+     :description "User is send to \\n validation screen",
+     :id :user-validate|register}]}
+  {:id :validate,
+   :name "Validate",
+   :from :user,
+   :steps
+   [{:from :user,
+     :to :ui,
+     :type :call,
+     :description "Enter email, \\n password and OTP",
+     :id :user-ui|validate}
+    {:from :ui,
+     :to :api,
+     :type :call,
+     :description "PUT /api/user/validate",
+     :id :ui-api|validate}
+    {:from :api,
+     :to :log,
+     :type :message,
+     :description "Validation",
+     :id :api-log|validate}
+    {:from :api,
+     :to :db,
+     :type :call,
+     :description "Fetch user & OTP",
+     :id :api-db|validate}
+    {:from :db,
+     :to :api,
+     :type :return,
+     :description "User, OTP",
+     :id :db-api|validate}
+    {:from :api,
+     :to :api,
+     :type :call,
+     :description "Validate \\n password & OTP",
+     :id :api-api|validate}
+    {:from :api,
+     :to :db,
+     :type :call,
+     :description "Update user & \\n create session",
+     :id :api-db|validate}
+    {:from :db,
+     :to :api,
+     :type :return,
+     :description "Session token",
+     :id :db-api|validate}
+    {:from :api,
+     :to :email,
+     :type :message,
+     :description "Send welcome email",
+     :id :api-email|validate}
+    {:from :api,
+     :to :ui,
+     :type :return,
+     :description "Session token",
+     :id :api-ui|validate}
+    {:from :ui,
+     :to :user,
+     :type :return,
+     :description "Success message",
+     :id :ui-user|validate}
+    {:from :user,
+     :to :ui,
+     :type :message,
+     :description "User is send to \\n home screen",
+     :id :user-ui|validate}]}
+  {:id :remind,
+   :name "Daily \\n reminder for \\n validation",
+   :from :cron,
+   :steps
+   [{:from :cron,
+     :to :db,
+     :type :call,
+     :description "Fetch non- \\n validated users",
+     :id :cron-db|remind}
+    {:from :db,
+     :to :cron,
+     :type :return,
+     :description "Users",
+     :id :db-cron|remind}
+    {:from :cron,
+     :to :email,
+     :type :message,
+     :description "For each, send reminder email",
+     :id :cron-email|remind}]}]}

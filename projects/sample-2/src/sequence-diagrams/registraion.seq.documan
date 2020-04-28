@@ -1,0 +1,48 @@
+Sequence-Diagram V1 "On-boarding New User"
+
+user = actor "New User"
+ui = gui "User Interface"
+api = server "API Server"
+cron = server "Cron Job"
+db = server "Database"
+log = server "Log Server"
+email = external "Email Server"
+
+register = user "Register" (
+	=> ui "Enter details like \n email, mobile etc." {
+		=> api "POST /api/user" {
+			-> log "Registration"
+			=> db "Create user record"
+			=> db "Generate & store OTP"
+			-> email "Send OTP to user"
+		}
+		return "Show message asking \n user to validate"
+	}
+	>> validate "User is send to \n validation screen"
+)
+
+validate = user "Validate" (
+	=> ui "Enter email, \n password and OTP" {
+		=> api "PUT /api/user/validate" {
+			-> log "Validation"
+			=> db "Fetch user & OTP" {
+				return "User, OTP"
+			}
+			=> self "Validate \n password & OTP"
+			=> db "Update user & \n create session" {
+				return "Session token"
+			}
+			-> email "Send welcome email"
+			return "Session token"
+		}
+		return "Success message"
+	}
+	-> ui "User is send to \n home screen"
+)
+
+remind = cron "Daily \n reminder for \n validation" (
+	=> db "Fetch non- \n validated users" {
+		return "Users"
+	}
+	-> email "For each, send reminder email"
+)

@@ -1,8 +1,20 @@
 (ns documan.utils
   (:gen-class)
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.data.json :as json]
+            [clojure.java.io :as io]))
 
-;-------------------------------------------------------------------------------
+;-----------------------------------------------------------------------------------------------------------------------
+
+(defn load-config
+  "Loads the config.json file in the given path and return its contents as a map"
+  [path]
+  (if (.exists (io/file (str path "/config.json")))
+    (let [config (slurp (str path "/config.json"))]
+      (json/read-str config :key-fn keyword))
+    {}))
+
+;-----------------------------------------------------------------------------------------------------------------------
 
 (defn parse-tokens
   "Parses the given string and returns tokens.
@@ -34,4 +46,33 @@
           (filterv not-blank-token?
                    (reduce collect-token ["" false] chars)))))
 
-;-------------------------------------------------------------------------------
+;-----------------------------------------------------------------------------------------------------------------------
+
+(defn get-files-only-given-extension
+  "Returns the files in the specified path with the given extension"
+  [path extension]
+  (->> path
+       io/file
+       file-seq
+       (filterv #(.isFile %))
+       (filterv #(str/ends-with? (.getName %) extension))))
+
+;-----------------------------------------------------------------------------------------------------------------------
+
+(defn strip-comments
+  "Removes empty lines, comment lines and end-of-line comments from the given list of lines"
+  [lines]
+  (let [is-not-empty-line? #(not= "" (str/trim %))
+        is-not-comment-line? #(not (str/starts-with? (str/trim %) "//"))
+        strip-line-comments #(first (str/split % #"//"))]
+    (->> lines
+         (filterv is-not-empty-line?)
+         (filterv is-not-comment-line?)
+         (mapv strip-line-comments))))
+
+;-----------------------------------------------------------------------------------------------------------------------
+
+(defn map->vec [m] (vec (flatten (into (vector) m))))
+(defn ceil [n] (int (Math/ceil n)))
+
+;-----------------------------------------------------------------------------------------------------------------------

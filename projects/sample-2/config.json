@@ -1,0 +1,34 @@
+
+{
+  "theme": {
+    "bg": "#e8f9df",
+    "actor": {
+      "fill": "#b7d03b",
+      "text": "#000000",
+      "bar": "#596c29"
+    },
+    "gui": {
+      "fill": "#bcffdb",
+      "text": "#000000",
+      "bar": "#4f7942"
+    },
+    "server": {
+      "fill": "#3fc283",
+      "text": "#000000",
+      "bar": "#0f4f34"
+    },
+    "external": {
+      "fill": "#3b5c0a",
+      "text": "#d2d83f",
+      "bar": "#3b5c0a"
+    },
+    "flow-title": {
+      "text": "#3b5c0a"
+    },
+    "flow-placeholder": {
+      "fill": "#d2d83f",
+      "text": "#000000",
+      "line-color": "#046307"
+    }
+  }
+}
