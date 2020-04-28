@@ -4,16 +4,18 @@ Utility to generate documents and diagrams.
 
 Currently, it can be used to generate sequence diagrams using a DSL as shown below:
 
-###Input
+### Input
+
 ![Source Code in DSL](images/source.png)
 
-###Output
+### Output
+
 ![Generated Sequence Diagram](images/generated.png)
 
 Colors can be customized using a json configuration file:
 ![Generated Sequence Diagram](images/custom-colors.png)
 
-###Disclaimer
+#### Disclaimer
 * I am a Clojure newbie, so the implementation is far from ideal; I will keep updating as I learn more of Clojure. 
 
 * Currently, there are no tests.
