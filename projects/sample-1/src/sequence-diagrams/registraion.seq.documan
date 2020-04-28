@@ -1,5 +1,30 @@
 Sequence-Diagram V1 "On-boarding New User"
 
+// First line needs to be the type of the document and title.
+// Syntax of fist line:
+//  Sequence-Diagram V<version> "<title>"
+//    title can contain spaces and quotes,
+//      preceding and trailing spaces will be trimmed.
+
+//-----------------------------------------------------------------
+
+// Strings can be split to multilines by embedding \n inside them.
+// For example: "Line 1 \n Line 2"
+// For each line preceding and trailing spaces will be trimmed.
+
+//-----------------------------------------------------------------
+
+// Objects are defined in the same order they need to be rendered.
+// They need to declared at the beginning, before the flows.
+
+// Object definition syntax:
+//  <id> = <tag> "<name>"
+//    id needs to be unique.
+//    name can contain spaces and quotes, 
+//      preceding and trailing spaces will be trimmed.
+//    tag can be one of the following:
+//			actor, gui, server or external
+
 user = actor "New User"
 ui = gui "User Interface"
 api = server "API Server"
@@ -7,6 +32,29 @@ cron = server "Cron Job"
 db = server "Database"
 log = server "Log Server"
 email = external "Email Server"
+
+//-----------------------------------------------------------------
+// Syntax of flow:
+//	<id> = <object-id> "<name>" (
+//		<flow-items>
+//  )
+
+// Syntax of flow items:
+
+// 1. Call with return:
+//  => <object-id> "<name>" {
+//    <flow-items>
+//    return "<return-value>"	
+//  }
+
+// 2. Call without return:
+//  => <object-id> | self "<name>"
+
+// 3. Message:
+//  -> <object-id> "<name>"
+
+// 4. Async call to another flow:
+//  >> <flow-id> "<name>"
 
 register = user "Register" (
 	=> ui "Enter details like \n email, mobile etc." {
@@ -46,3 +94,5 @@ remind = cron "Daily \n reminder for \n validation" (
 	}
 	-> email "For each, send reminder email"
 )
+
+//-----------------------------------------------------------------
