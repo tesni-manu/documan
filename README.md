@@ -4,19 +4,21 @@ Utility to generate documents and diagrams.
 
 Currently, it can be used to generate sequence diagrams using a DSL as shown below:
 
-#####Input
+###Input
 ![Source Code in DSL](images/source.png)
 
-#####Output
+###Output
 ![Generated Sequence Diagram](images/generated.png)
 
 Colors can be customized using a json configuration file:
 ![Generated Sequence Diagram](images/custom-colors.png)
 
-#####Disclaimer
+###Disclaimer
 * I am a Clojure newbie, so the implementation is far from ideal; I will keep updating as I learn more of Clojure. 
 
 * Currently, there are no tests.
+
+---
 
 ### Installation
 
@@ -36,9 +38,9 @@ The colors can be customized for each project using a config.json file. Please c
 
 ### Options
 
-* Option -t will transpile the .documan files in src folder into .edn files in edn folder.
+* Option **-t** will transpile the .documan files in src folder into .edn files in edn folder.
 
-* Option -g will generate the documents in dst folder from the .edn files in edn folder.
+* Option **-g** will generate the documents in dst folder from the .edn files in edn folder.
 
 
 ### Examples
@@ -46,6 +48,7 @@ The colors can be customized for each project using a config.json file. Please c
     $ lein run projects/sample-1
     $ lein run projects/sample-2
 
+---
 ### Syntax
 
 First line needs to be the type of the document and title.
@@ -95,7 +98,7 @@ Async call to another flow:
 
     >> <flow-id> "<name>"
 
-
+---
 
 ### Libraries Used
 
