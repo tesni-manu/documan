@@ -92,24 +92,30 @@ To generate all diagrams in a project:
 ---
 ### DSL Syntax
 
-First line needs to be the type of the document and title.
+First line needs to be the type of the document and title, using this syntax:
     
     Sequence-Diagram V<version> "<title>"
 
-where, title can contain spaces and quotes, preceding and trailing spaces will be trimmed.
+where: 
+* title can contain spaces and quotes 
+* preceding and trailing spaces will be trimmed
 
-Strings can be split to multi-lines by embedding \n inside them.
+Strings can be split to multi-lines by embedding \n inside them. For each line preceding and trailing spaces will be trimmed.
+
 
     "Line 1 \n Line 2"
 
-For each line preceding and trailing spaces will be trimmed.
 
 Objects need to be defined in the same order they are to be rendered (from left to right).
-They need to be declared at the beginning, before the flows.
+They need to be declared at the beginning, before the flows, using this syntax:
 
     <id> = <tag> "<name>"
    
-where, id needs to be unique. name can contain spaces and quotes, preceding and trailing spaces will be trimmed. tag can be one of the following: **actor**, **gui**, **server** or **external**
+where: 
+* id needs to be unique
+* name can contain spaces and quotes
+* preceding and trailing spaces will be trimmed
+* tag can be one of the following: **actor**, **gui**, **server** or **external**
 
 Syntax of a flow:
 
@@ -117,7 +123,6 @@ Syntax of a flow:
         <flow-items>
     )
 
-**Syntax of flow items:**
 
 Call another module, with return value specified:
 
@@ -141,6 +146,8 @@ Send a message to another object:
 Async call to another flow:
 
     >> <flow-id> "<name>"
+
+There can be more than one flows in one sequence diagram.
 
 ---
 
